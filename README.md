@@ -1,115 +1,117 @@
-Projeto final da disciplina de Banco de Dados, desenvolvido com Spring Boot, Java e PostgreSQL. O sistema permite o cadastro de usuários, gerenciamento de locais e eventos, e a venda de ingressos com controle de capacidade máxima e limite de compras por usuário.
 
-## Equipe
 
-  Nome completo | RGM |
+Esse é o projeto final que a gente fez. A proposta era montar um sistema completo, então escolhemos fazer algo de venda de ingressos pra eventos, tipo um Sympla mais simples. Tem cadastro de usuário, cadastro de local, criação de evento e a compra do ingresso em si, com algumas regras.
 
-| Glauco Lucio Melo de Menezes Filho | 42811155 |
-| Victor Gabriel Mesquita Muniz Farias | 42888671 |
+Fizemos em Spring Boot + Java, com PostgreSQL de banco.
 
-## Tecnologias utilizadas
+Quem fez
 
-- **Java 21**
-- **Spring Boot** (Web, Data JPA, Security, Validation)
-- **Gradle** (Kotlin DSL)
-- **PostgreSQL**
-- **JWT** (io.jsonwebtoken) — autenticação stateless
-- **Lombok** — redução de boilerplate
-- **Swagger / OpenAPI** — documentação interativa da API
 
-## Estrutura do projeto
+Glauco Lucio Melo de Menezes Filho - RGM 42811155
+Victor Gabriel Mesquita Muniz Farias - RGM 42888671
 
-```
-src/main/java/com/example/ingressos/
-├── config/          → configuração do Swagger/OpenAPI
-├── controllers/      → endpoints REST (Auth, Usuário, Local, Evento, Ingresso)
-├── exceptions/        → tratamento global de erros (400, 404)
-├── models/
-│   ├── dto/           → objetos de entrada (FormDTO) e saída (DTO)
-│   └── entities/       → entidades JPA mapeadas para o banco
-├── repositories/      → interfaces Spring Data JPA
-├── security/           → JWT (TokenService, SecurityFilter, SecurityConfig)
-└── services/            → regras de negócio
-```
 
-## Modelo de dados
+Tecnologias
 
-- **Usuario** — dados do cliente/comprador (relação `@OneToOne` com Endereco)
-- **Endereco** — endereço do usuário
-- **Local** — estabelecimento onde ocorrem os eventos (teatros, estádios, etc.)
-- **Evento** — evento cultural vinculado a um Local (`@ManyToOne`), com data, capacidade máxima e preço do ingresso
-- **Ingresso** — entidade de transação, vinculando Usuario e Evento (`@ManyToOne` para ambos), com data da compra e valor pago
+Usamos:
 
-## Regras de negócio implementadas
 
-1. **Capacidade máxima do evento**: não é possível emitir novos ingressos quando a capacidade máxima do local/evento já foi atingida (retorna status `400`).
-2. **Limite por usuário**: cada usuário pode comprar no máximo **5 ingressos** para o mesmo evento (retorna status `400`).
-3. **Email único**: não é possível cadastrar dois usuários com o mesmo email (retorna status `400`).
+Java 21
+Spring Boot (Web, JPA, Security e Validation)
+Gradle com Kotlin DSL
+PostgreSQL
+JWT pra autenticação (biblioteca io.jsonwebtoken)
+Lombok pra não ficar escrevendo getter e setter à mão o tempo todo
+Swagger pra documentar e poder testar os endpoints sem precisar abrir Postman toda hora
 
-## Segurança
 
-- Autenticação via **JWT** (stateless, sem sessão no servidor).
-- Rotas públicas: `POST /usuarios` (cadastro), `POST /auth/login` (login) e documentação Swagger.
-- Todas as demais rotas exigem o cabeçalho `Authorization: Bearer <token>`.
-- Senhas armazenadas com hash **BCrypt**, nunca em texto puro.
+Como o projeto tá organizado
 
-## Endpoint de estatísticas
+Separamos os pacotes assim:
 
-`GET /ingressos/resumo` retorna, calculado em memória:
-- Total de ingressos vendidos
-- Receita total arrecadada
-- Taxa de ocupação média dos eventos
-- Evento com maior número de vendas
+com.example.ingressos
+├── config       (configuração do Swagger)
+├── controllers  (os endpoints da API)
+├── exceptions   (tratamento de erro, tipo 400 e 404)
+├── models
+│   ├── dto       (o que entra e sai da API)
+│   └── entities  (as tabelas do banco)
+├── repositories (JPA)
+├── security     (toda a parte de JWT)
+└── services     (onde ficam as regras de negócio de fato)
 
-## Como rodar o projeto localmente
+As entidades
 
-### Pré-requisitos
-- Java 21 ou superior
-- PostgreSQL instalado e rodando
-- Git
 
-### Passo a passo
+Usuario: quem compra o ingresso. Cada usuário tem um endereço vinculado (relação um-pra-um).
+Endereco: endereço do usuário, separamos numa tabela à parte.
+Local: onde o evento vai acontecer, tipo um teatro ou um estádio.
+Evento: fica ligado a um Local, tem data, capacidade máxima e o preço do ingresso.
+Ingresso: essa é a tabela que representa a venda em si, liga um Usuario a um Evento, com a data que foi comprado e quanto foi pago.
 
-**1.** Clone o repositório:
-```bash
+
+Regras que a gente implementou
+
+No começo a gente ia deixar bem simples, só criar e listar, mas o professor pediu regra de negócio de verdade então colocamos essas três:
+
+
+Se o evento já vendeu o total de ingressos que cabe no local, não deixa comprar mais. Dá erro 400.
+Cada usuário só pode comprar até 5 ingressos do mesmo evento (pra evitar cambista kk). Se tentar o sexto, também dá 400.
+Não pode cadastrar dois usuários com o mesmo email, senão também retorna 400.
+
+
+Sobre a parte de segurança
+
+A autenticação é via JWT e não guarda sessão no servidor, é tudo stateless mesmo.
+
+As únicas rotas que não pedem token são o cadastro de usuário e o login, além da própria página do Swagger. Todo o resto precisa mandar o token no header assim:
+
+Authorization: Bearer seu_token_aqui
+
+E a senha do usuário nunca fica salva como veio, ela passa por hash BCrypt antes de ir pro banco.
+
+Estatísticas
+
+Tem um endpoint só pra isso, /ingressos/resumo, que mostra:
+
+
+quantos ingressos já foram vendidos no total
+quanto isso deu em dinheiro
+a taxa de ocupação média dos eventos
+e qual foi o evento que mais vendeu
+
+
+Esses cálculos são feitos na hora, não fica salvo em nenhuma tabela separada.
+
+Rodando na sua máquina
+
+Precisa ter instalado: Java 21 (ou mais novo), PostgreSQL rodando e o Git.
+
+Primeiro clona o repositório:
+
 git clone https://github.com/Victormesquita666/ingressos.git
 cd ingressos
-```
 
-**2.** Crie o banco de dados no PostgreSQL (via pgAdmin ou terminal):
-```sql
+Depois cria o banco no Postgres (pode ser pelo terminal ou pgAdmin, o que for mais fácil pra você):
+
 CREATE DATABASE ingressos_db;
-```
 
-**3.** Configure a conexão em `src/main/resources/application.properties` com o usuário e senha do **seu** PostgreSQL local:
-```properties
+Aí abre o arquivo application.properties, que fica em src/main/resources, e troca usuário e senha pelos que você usa no seu Postgres local:
+
 spring.datasource.url=jdbc:postgresql://localhost:5432/ingressos_db
 spring.datasource.username=postgres
-spring.datasource.password=SUA_SENHA_AQUI
-```
+spring.datasource.password=coloque_sua_senha_aqui
 
-**4.** Rode a aplicação:
-```bash
+Depois é só rodar:
+
 ./gradlew bootRun
-```
-*(No Windows: `.\gradlew bootRun`)*
 
-**5.** Acesse a documentação interativa (Swagger) para testar os endpoints:
-```
-http://localhost:8080/swagger-ui/index.html
-```
+(se for Windows, usa .\gradlew bootRun)
 
-As tabelas do banco são criadas automaticamente na primeira execução (via Hibernate `ddl-auto=update`).
+Quando subir, entra em http://localhost:8080/swagger-ui/index.html pra ver e testar os endpoints. As tabelas sobem sozinhas na primeira vez que roda, não precisa criar nada manualmente.
 
-## Principais endpoints
+Endpoints principais
 
-| Método | Rota | Descrição | Autenticação |
-|---|---|---|---|
-| POST | `/usuarios` | Cadastrar usuário | Pública |
-| POST | `/auth/login` | Login (retorna JWT) | Pública |
-| GET/POST | `/locais` | Listar / criar locais | Requer token |
-| GET/POST | `/eventos` | Listar / criar eventos | Requer token |
-| GET/POST | `/ingressos` | Listar / comprar ingressos | Requer token |
-| GET | `/ingressos/resumo` | Estatísticas de vendas | Requer token |
+MétodoRotaO que fazPrecisa de token?POST/usuariosCadastra um usuário novoNãoPOST/auth/loginFaz login e devolve o JWTNãoGET / POST/locaisLista ou cria locaisSimGET / POST/eventosLista ou cria eventosSimGET / POST/ingressosLista ou compra ingressosSimGET/ingressos/resumoMostra as estatísticasSim
 
-A lista completa de endpoints, com exemplos de requisição e resposta, está disponível no Swagger UI.
+Tem mais rota além dessas, mas essas são as principais. O resto (com exemplo de request e response de cada uma) dá pra ver direto no Swagger depois que a aplicação estiver rodando.
