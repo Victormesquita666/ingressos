@@ -4,8 +4,6 @@ Projeto final da disciplina de Banco de Dados, desenvolvido com Spring Boot, Jav
 
   Nome completo | RGM |
 
-| Pedro Fernando De Lima Santos | 44289472 |
-| Lucas De Oliveira Vital | 43827063 |
 | Glauco Lucio Melo de Menezes Filho | 42811155 |
 | Victor Gabriel Mesquita Muniz Farias | 42888671 |
 
